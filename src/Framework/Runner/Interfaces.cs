@@ -75,6 +75,7 @@ namespace RTF.Framework
         string Category { get; set; }
         string Test { get; set; }
         bool Concat { get; set; }
+        bool CopyAddins { get; set; }
         bool DryRun { get; set; }
         string RevitPath { get; set; }
         bool CleanUp { get; set; }

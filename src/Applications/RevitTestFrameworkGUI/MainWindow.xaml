@@ -245,13 +245,22 @@
                         <TextBlock.ToolTip>
                             <TextBlock Text="Specify a timeout in milliseconds for tests which fail and hang the testing process."></TextBlock>
                         </TextBlock.ToolTip>
-                </TextBlock>
+                    </TextBlock>
                     <TextBox Width="60" VerticalAlignment="Center" Margin="5,0,0,0" Text="{Binding Path=Timeout, Mode=TwoWay, Converter={StaticResource StringToIntConverter}}"></TextBox>
+
+                    <CheckBox Content="Copy Addins" IsChecked="{Binding Path=CopyAddins, Mode=TwoWay}" Margin="16,0,0,0" VerticalAlignment="Center">
+                        <CheckBox.ToolTip>
+                            <TextBlock Text="Specify whether to copy the addins from the Revit folder to the current working directory. Copying the addins from the Revit folder will cause the test process to simulate the typical setup on your machine"></TextBlock>
+                        </CheckBox.ToolTip>
+                    </CheckBox>
+
                     <CheckBox Content="Concatenate Results" IsChecked="{Binding Path=Concat, Mode=TwoWay}" Margin="16,0,0,0" VerticalAlignment="Center">
                         <CheckBox.ToolTip>
                             <TextBlock Text="Add the results of the current test to an existing results file if one exists at the path specified."></TextBlock>
                         </CheckBox.ToolTip>
                     </CheckBox>
+                    
+                    
                     <CheckBox Content="Continuous" IsChecked="{Binding Path=Continuous, Mode=TwoWay}" VerticalAlignment="Center" Margin="8,0,0,0">
                         <CheckBox.ToolTip>
                             <TextBlock Text="When selected, all tests will be run in the same Revit session."></TextBlock>

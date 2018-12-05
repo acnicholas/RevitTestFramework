@@ -20,7 +20,8 @@ namespace RTF.Framework
                 doc.Load(streamReader);
             }
 
-            foreach (XmlElement addinElement in doc.DocumentElement.ChildNodes)
+            ////foreach (XmlElement addinElement in doc.DocumentElement.ChildNodes)
+            foreach (var addinElement in doc.DocumentElement.ChildNodes.OfType<XmlElement>())
             {
                 //if this element is an addin attempt to make the assembly path a full path
              if (addinElement.LocalName != "AddIn")

@@ -14,9 +14,7 @@ namespace RTF.Applications
             try
             {
                 var setupData = Runner.ParseCommandLineArguments(args);
-
                 runner = new Runner(setupData);
-
                 Run();
             }
             catch (Exception ex)

@@ -346,6 +346,7 @@ namespace RTF.Framework
             Results = setupData.Results;
             Fixture = setupData.Fixture;
             Category = setupData.Category;
+            CopyAddins = setupData.CopyAddins;
             Test = setupData.Test;
             Concat = setupData.Concat;
             DryRun = setupData.DryRun;
@@ -1173,8 +1174,10 @@ namespace RTF.Framework
                         runningTestCaseName = dataMessage.TestCaseName;
                         runningFixtureName = dataMessage.FixtureName;
                         runningTestCase = FindTestCase(runningTestCaseName, runningFixtureName);
-                        Console.WriteLine("Running {0} in {1}", runningTestCaseName, runningFixtureName);
-
+                        if (runningTestCase != null)
+                        {
+                            Console.WriteLine("Running {0} in {1}", runningTestCaseName, runningFixtureName);
+                        }
                         watch.Reset();
                         watch.Start();
                     }
@@ -1186,6 +1189,10 @@ namespace RTF.Framework
         {
             var tests = GetRunnableTests().Where(x => string.CompareOrdinal(x.Name, testCaseName) == 0 &&
                             string.CompareOrdinal(x.Fixture.Name, fixtureName) == 0);
+            if (tests.Count() < 1)
+            {
+                return null;
+            }
             return tests.First();
         }
 

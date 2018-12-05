@@ -282,6 +282,16 @@ namespace RTF.Applications
             }
         }
 
+        public bool CopyAddins
+        {
+            get { return runner.CopyAddins; }
+            set
+            {
+                runner.CopyAddins = value;
+                RaisePropertyChanged();
+            }
+        }
+
         public int Timeout
         {
             get { return runner.Timeout; }
