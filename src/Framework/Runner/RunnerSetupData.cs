@@ -17,6 +17,7 @@ namespace RTF.Framework
         public string Fixture { get; set; }
         public string Category { get; set; }
         public string Test { get; set; }
+        public bool ColoredOutput { get; set; }
         public bool Concat { get; set; }
         public bool DryRun { get; set; }
         public string RevitPath { get; set; }

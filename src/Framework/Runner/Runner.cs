@@ -198,6 +198,11 @@ namespace RTF.Framework
         public bool CopyAddins { get; set; } = true;
 
         /// <summary>
+        /// Add some colors to Errors, Warnings and Successes
+        /// </summary>
+        public bool ColoredOutput{ get; set; } = false;
+
+        /// <summary>
         /// A timeout value in milliseconds, after which
         /// any running test will be killed.
         /// </summary>
@@ -346,6 +351,7 @@ namespace RTF.Framework
             Results = setupData.Results;
             Fixture = setupData.Fixture;
             Category = setupData.Category;
+            ColoredOutput = setupData.ColoredOutput;
             CopyAddins = setupData.CopyAddins;
             Test = setupData.Test;
             Concat = setupData.Concat;
@@ -663,10 +669,36 @@ namespace RTF.Framework
             }
             catch (IOException)
             {
+                WriteWarning("WARNING: One or more journal files could not be deleted.");
+            }
+        }
+
+        private void WriteError(string text)
+        {
+            WriteLine(text, ConsoleColor.Red);
+        }
+
+        private void WriteWarning(string text)
+        {
+            WriteLine(text, ConsoleColor.Yellow);
+        }
+
+        private void WriteSuccess(string text)
+        {
+            WriteLine(text, ConsoleColor.Green);
+        }
+
+        private void WriteLine(string text, ConsoleColor newColor)
+        {
+            if (ColoredOutput)
+            {
                 var savedFGColor = Console.ForegroundColor;
-                Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine("WARNING: One or more journal files could not be deleted.");
+                Console.ForegroundColor = newColor;
+                Console.WriteLine(text);
                 Console.ForegroundColor = savedFGColor;
+            } else
+            {
+                Console.WriteLine(text);
             }
         }
 
@@ -766,10 +798,7 @@ namespace RTF.Framework
             }
             catch (Exception ex)
             {
-                var savedFGColor = Console.ForegroundColor;
-                Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("ERROR: Failed to initialize test runner.");
-                Console.ForegroundColor = savedFGColor;
                 Console.WriteLine(ex.Message);
                 return null;
             }
@@ -1106,10 +1135,7 @@ namespace RTF.Framework
                         process.Kill();
                     }
                     RevitTestServer.Instance.ResetWorkingSocket();
-                    var savedFGColor = Console.ForegroundColor;
-                    Console.ForegroundColor = ConsoleColor.Yellow;
-                    Console.WriteLine("WARNING: Test is cancelled");
-                    Console.ForegroundColor = savedFGColor;
+                    WriteWarning("WARNING: Test is cancelled");
                     return true;
                 }
 
@@ -1117,10 +1143,7 @@ namespace RTF.Framework
                 {
                     if (consoleMsg.Type == ConsoleMessageType.ErrorOut)
                     {
-                        var savedFGColor = Console.ForegroundColor;
-                        Console.ForegroundColor = ConsoleColor.Red;
-                        Console.WriteLine($"UT: ERROR: {consoleMsg.Text}");
-                        Console.ForegroundColor = savedFGColor;
+                        WriteError($"UT: ERROR: {consoleMsg.Text}");
                     }
                     else
                     {
@@ -1131,15 +1154,11 @@ namespace RTF.Framework
                 {
                     var savedFGColor = Console.ForegroundColor; 
                     if (testResultMsg.Result == "Failure") {
-                        Console.ForegroundColor = ConsoleColor.Red;
+                        WriteError($"{testResultMsg.Result}: {testResultMsg.TestCaseName} in {testResultMsg.FixtureName}");
                     }
                     if (testResultMsg.Result == "Success") {
-                        Console.ForegroundColor = ConsoleColor.Green;
+                        WriteSuccess($"{testResultMsg.Result}: {testResultMsg.TestCaseName} in {testResultMsg.FixtureName}");
                     }
-
-                    Console.WriteLine($"{testResultMsg.Result}: {testResultMsg.TestCaseName} in {testResultMsg.FixtureName}");
-
-                    Console.ForegroundColor = savedFGColor;
 
                     if (!string.IsNullOrEmpty(testResultMsg.StackTrace))
                     {
@@ -1182,10 +1201,7 @@ namespace RTF.Framework
                             {
                                 if (!process.WaitForExit(maxRevitWaitSec * 1000))
                                 {
-                                    var savedFGColor = Console.ForegroundColor;
-                                    Console.ForegroundColor = ConsoleColor.Yellow;
-                                    Console.WriteLine($"WARNING: Forcefully terminating Revit due to timeout of {maxRevitWaitSec}seconds");
-                                    Console.ForegroundColor = savedFGColor;
+                                    WriteWarning($"WARNING: Forcefully terminating Revit due to timeout of {maxRevitWaitSec}seconds");
                                     process.Kill();
                                 }
                             }
@@ -1474,10 +1490,7 @@ namespace RTF.Framework
                     td.TestStatus = TestStatus.NotRunnable;
                     TestFailed?.Invoke(td, testError, string.Empty);
 
-                    var savedFGColor = Console.ForegroundColor;
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine(testError);
-                    Console.ForegroundColor = savedFGColor;
+                    WriteError(testError);
                 }
 
                 return false;
@@ -1819,10 +1832,7 @@ namespace RTF.Framework
                         {
                             if (!((TestData)test).ModelExists)
                             {
-                                var savedFGColor = Console.ForegroundColor;
-                                Console.ForegroundColor = ConsoleColor.Yellow;
-                                Console.WriteLine($"WARNING: model {test.ModelPath} not found for test {test.Fixture.Name}.{test.Name}");
-                                Console.ForegroundColor = savedFGColor;
+                                WriteWarning($"WARNING: model {test.ModelPath} not found for test {test.Fixture.Name}.{test.Name}");
                             }
                         }
                     }
@@ -1839,12 +1849,8 @@ namespace RTF.Framework
             }
             catch (Exception e)
             {
-                var savedFGColor = Console.ForegroundColor;
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine("ERROR: The specified assembly could not be loaded for testing. Try adding some additional resolution paths so RTF can find referenced assemblies.");
-                Console.WriteLine($"ERROR: {e.Message}");
-                Console.ForegroundColor = savedFGColor;
-
+                WriteError("ERROR: The specified assembly could not be loaded for testing. Try adding some additional resolution paths so RTF can find referenced assemblies.");
+                WriteError($"ERROR: {e.Message}");
                 return null;
             }
 
@@ -1895,6 +1901,7 @@ namespace RTF.Framework
                 {"x|clean", "Cleanup journal files after test completion. (OPTIONAL)", v=> setupData.CleanUp = v != null},
                 {"continuous", "Run all selected tests in one Revit session. (OPTIONAL)", v=> setupData.Continuous = v != null},
                 {"groupByModel", "Run tests with same model without reopening the model for faster execution, requires continuous. (OPTIONAL)", v=> setupData.GroupByModel = v != null },
+                {"color", "Add some colors to Errors, Warnings and Test Successes/Failuers. (OPTIONAL)", v=> setupData.ColoredOutput = v != null },
                 {"time", "The time, in milliseconds, after which RTF will close the testing process automatically. (OPTIONAL)", v=>setupData.Timeout = Int32.Parse(v) },
                 {"d|debug", "Should RTF attempt to attach to a debugger?. (OPTIONAL)", v=>setupData.IsDebug = v != null },
                 {"h|help", "Show this message and exit. (OPTIONAL)", v=> showHelp = v != null }
