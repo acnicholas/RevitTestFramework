@@ -543,9 +543,9 @@ namespace RTF.Framework
                     }
                 }
             }
-
+           
+            WriteSummary();
             Cleanup();
-
             OnTestRunsComplete();
         }
 
@@ -671,6 +671,43 @@ namespace RTF.Framework
             {
                 WriteWarning("WARNING: One or more journal files could not be deleted.");
             }
+        }
+
+        public void WriteSummary()
+        {
+            var runnableTests = GetRunnableTests();
+            GetTestResultStatus(runnableTests, Results);
+
+            var successValues = new List<TestStatus>
+            {
+                TestStatus.Success
+            };
+
+            var skippedValues = new List<TestStatus>
+            {
+                TestStatus.Ignored,
+                TestStatus.Skipped,
+                TestStatus.Cancelled
+            };
+
+            var failedValues = new List<TestStatus>
+            {
+                TestStatus.Failure,
+                TestStatus.Error,
+                TestStatus.Inconclusive,
+                TestStatus.TimedOut,
+                TestStatus.NotRunnable
+            };
+
+            var passedTestCount = runnableTests.Count(x => successValues.Contains(x.TestStatus));
+            var skippedTestCount = runnableTests.Count(x => skippedValues.Contains(x.TestStatus));
+            var failedTestCount = runnableTests.Count(x => failedValues.Contains(x.TestStatus));
+            WriteSuccess(@"TEST SUMMARY: " + runnableTests.Count() + @" tests run with: ");
+            WriteSuccess(@"--------------------------------------------------");
+            WriteSuccess("\t" + passedTestCount + @" passes ");
+            WriteWarning("\t" + skippedTestCount + @" skipped tests ");
+            WriteError("\t" + failedTestCount + @" failuers ");
+            WriteSuccess(@"--------------------------------------------------");
         }
 
         private void WriteError(string text)
